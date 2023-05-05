@@ -3,6 +3,7 @@ package infra
 import (
 	"fmt"
 	"net/http"
+	middleware "oauth-poc/infra/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,8 +12,16 @@ type GinRouter struct {
 	*gin.Engine
 }
 
+func HighlineGinRouter() *gin.Engine {
+	engine := gin.New()
+	engine.Use(gin.Logger(), gin.Recovery(), middleware.Authentication(), middleware.SessionAuthorization())
+	return engine
+}
+
 func NewGinRouter() *GinRouter {
-	return &GinRouter{gin.Default()}
+	return &GinRouter{HighlineGinRouter()}
+	// return &GinRouter{gin.Default()}
+
 }
 
 func (r *GinRouter) AddRoute(method string, path string, handler http.HandlerFunc) {
