@@ -12,15 +12,10 @@ type GinRouter struct {
 	*gin.Engine
 }
 
-func HighlineGinRouter() *gin.Engine {
-	engine := gin.New()
-	engine.Use(gin.Logger(), gin.Recovery(), middleware.Authentication(), middleware.Authorization())
-	return engine
-}
-
 func NewGinRouter() *GinRouter {
-	return &GinRouter{HighlineGinRouter()}
-	// return &GinRouter{gin.Default()}
+	engine := gin.Default()
+	engine.Use(middleware.Authentication(), middleware.Authorization())
+	return &GinRouter{engine}
 
 }
 
