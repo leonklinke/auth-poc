@@ -14,7 +14,7 @@ type GinRouter struct {
 
 func HighlineGinRouter() *gin.Engine {
 	engine := gin.New()
-	engine.Use(gin.Logger(), gin.Recovery(), middleware.Authentication(), middleware.SessionAuthorization())
+	engine.Use(gin.Logger(), gin.Recovery(), middleware.Authentication(), middleware.Authorization())
 	return engine
 }
 

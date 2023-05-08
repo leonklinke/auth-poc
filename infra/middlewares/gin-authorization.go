@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SessionAuthorization() gin.HandlerFunc {
+func Authorization() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		authorized, err := authorization(c.GetHeader("Authorization"), c.Request)
 
-		authorized, err := authorizeSession(c)
 		if !authorized {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": err,
