@@ -1,0 +1,3 @@
+p, client, users, GET
+p, member, users, GET
+p, member, users, POST

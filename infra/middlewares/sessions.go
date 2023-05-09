@@ -21,10 +21,18 @@ func (r Role) IsAdmin() bool {
 
 func getSessionInfo(token string) (Session, error) {
 	//mock session
+	if token == "tokenClient" {
+		return Session{
+			Id:        "1",
+			UserID:    "81de5fe8-eea1-11ed-a05b-0242ac120003",
+			CompanyID: "81de5fe8-eea1-11ed-a05b-0242ac120004",
+			Role:      ClientRole,
+		}, nil
+	}
 	return Session{
 		Id:        "1",
-		UserID:    "2",
-		CompanyID: "1",
-		Role:      ClientRole,
+		UserID:    "81de5fe8-eea1-11ed-a05b-0242ac120003",
+		CompanyID: "",
+		Role:      MemberRole,
 	}, nil
 }

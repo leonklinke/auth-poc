@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
+	"github.com/casbin/casbin"
 	"github.com/google/uuid"
 )
 
@@ -12,7 +14,6 @@ const BEARER_SCHEMA = "Bearer"
 
 func authorization(header string, req *http.Request) (bool, error) {
 	token := getToken(header)
-	path := req.URL.Path
 	session, err := getSessionInfo(token)
 	if err != nil {
 		return false, err
@@ -21,9 +22,8 @@ func authorization(header string, req *http.Request) (bool, error) {
 	if session.Role.IsAdmin() {
 		return true, nil
 	}
-	//authorizeRole(session)
 
-	sessionOk, err := authrorizeSession(session, path)
+	sessionOk, err := authorize(session, req)
 	if err != nil {
 		return false, err
 	}
@@ -38,7 +38,9 @@ func getToken(header string) string {
 	return tokenString
 }
 
-func authrorizeSession(session Session, path string) (bool, error) {
+func authorize(session Session, req *http.Request) (bool, error) {
+	path := req.URL.Path
+	method := req.Method
 	// /users/45s6df-4fs6d-5f4s/whatever...
 	//    ^         ^
 	//    |         |
@@ -54,6 +56,14 @@ func authrorizeSession(session Session, path string) (bool, error) {
 	subject, err := getPathSubject(pices)
 	if err != nil {
 		return false, err
+	}
+
+	rbcaOK, err := rbcaAuthorization(session, noun, method)
+	if err != nil {
+		return false, err
+	}
+	if !rbcaOK {
+		return false, errors.New("role unauthorized")
 	}
 
 	return authorizationsMethods[noun](session, subject)
@@ -82,4 +92,20 @@ func getPathSubject(pices []string) (string, error) {
 func IsValidUUID(u string) bool {
 	_, err := uuid.Parse(u)
 	return err == nil
+}
+
+func rbcaAuthorization(session Session, noun, method string) (bool, error) {
+	enforcer, err := casbin.NewEnforcerSafe("./authorization_policy/model.conf", "./authorization_policy/policy.csv")
+	if err != nil {
+		log.Fatal(err)
+		return false, err
+	}
+
+	ok, err := enforcer.EnforceSafe(string(session.Role), noun, method)
+	if err != nil {
+		log.Fatal(err)
+		return false, errors.New("authorization error")
+	}
+
+	return ok, nil
 }
